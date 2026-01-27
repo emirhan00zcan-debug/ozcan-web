@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ürün Detayı | Sinop Özcan Mobilya</title>
+    <link rel="stylesheet" href="style.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&family=Playfair+Display:wght@700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="customer-reviews.css">
+    <style>
+        .product-detail-container {
+            padding: 5rem 10%;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 50px;
+            background: #fff;
+        }
+
+        .detail-image {
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            background: #f5f5f5;
+        }
+
+        .image-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        .detail-image img {
+            width: 100%;
+            height: auto;
+            display: block;
+            transition: var(--transition);
+        }
+
+        /* The Color Overlay Layer */
+        .color-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            mix-blend-mode: multiply;
+            /* Realistic shadows/highlights preservation */
+            opacity: 0;
+            transition: all 0.6s ease;
+            z-index: 2;
+        }
+
+        /* Selective Mask - Confines color to the "Product Area" (Approximate) */
+        .color-overlay.active {
+            opacity: 0.6;
+            mask-image: radial-gradient(circle, black 60%, transparent 95%);
+            -webkit-mask-image: radial-gradient(circle, black 60%, transparent 95%);
+        }
+
+        .detail-info h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: var(--primary-teal);
+        }
+
+        .price-tag {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--secondary-black);
+            margin-bottom: 1.5rem;
+        }
+
+        .specs {
+            margin: 2rem 0;
+            padding: 1.5rem;
+            background: var(--light-bg);
+            border-radius: 8px;
+        }
+
+        .spec-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.8rem 0;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .spec-item:last-child {
+            border-bottom: none;
+        }
+
+        .description {
+            margin-bottom: 2rem;
+            color: var(--accent-grey);
+        }
+
+        .actions {
+            display: flex;
+            gap: 20px;
+        }
+
+        /* Color Swatches */
+        .color-selector {
+            margin: 2rem 0;
+        }
+
+        .color-selector h3 {
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--secondary-black);
+        }
+
+        .swatch-group {
+            display: flex;
+            gap: 15px;
+        }
+
+        .swatch.active {
+            border-color: var(--primary-teal);
+            box-shadow: 0 0 15px rgba(0, 150, 160, 0.4);
+            transform: scale(1.1);
+        }
+
+        .image-wrapper {
+            position: relative;
+            overflow: hidden;
+            border-radius: 20px;
+            background: #f0f0f0;
+        }
+
+        #mainImage {
+            width: 100%;
+            height: auto;
+            display: block;
+            transition: opacity 0.4s ease, filter 0.8s ease;
+        }
+
+        .color-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            opacity: 0;
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 2;
+        }
+
+        .color-overlay.active {
+            opacity: 1;
+        }
+
+        /* Loading State Hints */
+        .image-loading::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(0, 150, 160, 0.3);
+            border-top-color: var(--primary-teal);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            transform: translate(-50%, -50%);
+        }
+
+        @keyframes spin {
+            to {
+                transform: translate(-50%, -50%) rotate(360deg);
+            }
+        }
+
+        .swatch.active::after {
+            content: '\f00c';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 0.8rem;
+        }
+
+        .swatch[data-color="anthracite"] {
+            background: #373d43;
+        }
+
+        .swatch[data-color="white"] {
+            background: #ffffff;
+            border: 1px solid #ddd;
+        }
+
+        .swatch[data-color="white"].active::after {
+            color: #333;
+        }
+
+        .swatch[data-color="oak"] {
+            background: #b58b4c;
+        }
+
+        .swatch[data-color="black"] {
+            background: #1a1a1a;
+        }
+
+        @media (max-width: 768px) {
+            .product-detail-container {
+                grid-template-columns: 1fr;
+                padding: 2rem 5%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="logo-container">
+                <a href="index.html" style="text-decoration: none; display: flex; align-items: center; gap: 15px;">
+                    <img src="assets/images/ozcan-logo.png" alt="Özcan Mobilya Logo" class="logo">
+                    <div class="brand-info">
+                        <span class="brand-name">ÖZCAN MOBİLYA</span>
+                    </div>
+                </a>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html#home">Ana Sayfa</a></li>
+                <li><a href="index.html#products">Ürünler</a></li>
+                <li><a href="index.html#about">Hakkımızda</a></li>
+                <li><a href="index.html#contact">İletişim</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="product-detail-container">
+        <div class="detail-image">
+            <div class="image-wrapper">
+                <img id="mainImage" src="assets/images/10.jpeg" alt="Ürün Görseli">
+                <div id="colorOverlay" class="color-overlay"></div>
+            </div>
+        </div>
+        <div class="detail-info">
+            <h1 id="productTitle">Modern Ada Mutfak</h1>
+            <div class="price-tag" id="productPrice">45.000 TL'den başlayan fiyatlarla</div>
+            <div class="description">
+                Sinop Özcan Mobilya kalitesiyle, evinizin ölçülerine özel olarak tasarlanan bu ürün, modern estetiği
+                fonksiyonellikle birleştiriyor. Yüksek kaliteli malzemeler ve titiz işçilik ile hayallerinizdeki yaşam
+                alanını oluşturuyoruz.
+            </div>
+            <div class="specs">
+                <div class="spec-item">
+                    <span><strong>Kategori</strong></span>
+                    <span id="productCategory">Mutfak</span>
+                </div>
+                <div class="spec-item">
+                    <span><strong>Ölçü / Alan</strong></span>
+                    <span id="productM2">25 m²</span>
+                </div>
+                <div class="spec-item">
+                    <span><strong>Malzeme</strong></span>
+                    <span>Lake / Doğal Ahşap Kaplama</span>
+                </div>
+            </div>
+
+            <div class="color-selector">
+                <h3>Kapak Rengi Seçimi</h3>
+                <div class="swatch-group">
+                    <div class="swatch active" data-color="anthracite" title="Antrasit"></div>
+                    <div class="swatch" data-color="white" title="Beyaz Parlak"></div>
+                    <div class="swatch" data-color="oak" title="Doğal Meşe"></div>
+                    <div class="swatch" data-color="black" title="Mat Siyah"></div>
+                </div>
+            </div>
+            <div class="actions">
+                <a href="https://wa.me/905054423809" class="btn-primary" style="background: #25D366;"><i
+                        class="fab fa-whatsapp"></i> Fiyat Teklifi Al</a>
+                <a href="index.html#contact" class="btn-primary">Bize Ulaşın</a>
+            </div>
+        </div>
+    </main>
+
+    <section class="customer-photos-section">
+        <div class="customer-photos-title">
+            <div class="verified-badge"><i class="fas fa-check-circle"></i> %100 Gerçek Müşteri Deneyimi</div>
+            <h2>Sizden Gelenler</h2>
+            <p>Ürünlerimizin gerçek yaşam alanlarındaki duruşu.</p>
+        </div>
+
+        <div class="customer-photos-grid">
+            <div class="customer-photo-card">
+                <div class="customer-photo-wrapper">
+                    <img src="assets/images/13.jpeg" alt="Özel Tasarım Müşteri Fotoğrafı">
+                    <div class="photo-label">Orijinal Fotoğraf</div>
+                </div>
+                <div class="customer-review-content">
+                    <div class="review-stars">
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i
+                            class="fas fa-star"></i><i class="fas fa-star"></i>
+                    </div>
+                    <p class="review-text">"İstediğimiz ölçülere tam uyum sağladı. İşçilik kalitesi çok yüksek. Sinop'ta
+                        böyle bir hizmet almak çok değerli."</p>
+                    <div class="customer-info">
+                        <span class="customer-name">Fatma Hanım</span>
+                        <span class="review-date">10 Ocak 2026</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="customer-photo-card">
+                <div class="customer-photo-wrapper">
+                    <img src="assets/images/d5.jpeg" alt="Modern Ayna Müşteri Fotoğrafı">
+                    <div class="photo-label">Orijinal Fotoğraf</div>
+                </div>
+                <div class="customer-review-content">
+                    <div class="review-stars">
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i
+                            class="fas fa-star"></i><i class="fas fa-star"></i>
+                    </div>
+                    <p class="review-text">"Ayna tasarımı çok şık. Paketleme çok özenliydi, hasarsız ulaştı ve montajı
+                        yapıldı. Çok memnunuz."</p>
+                    <div class="customer-info">
+                        <span class="customer-name">Bülent T.</span>
+                        <span class="review-date">18 Ocak 2026</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer style="margin-top: 5rem;">
+        <div class="footer-bottom">
+            <p>&copy; 2026 Özcan Mobilya. Tüm hakları saklıdır.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Ürün Verileri
+        const urlParams = new URLSearchParams(window.location.search);
+        const productId = urlParams.get('id');
+
+        const products = {
+            // PRO COLLECTION
+            'pro-siena': { title: 'Siena Klasik Mutfak', price: '95.000 TL', category: 'Mutfak', m2: '32 m²', img: 'assets/images/premium-kitchen.png' },
+            'pro-ada': {
+                title: 'Ada Luxury Mutfak',
+                price: '125.000 TL',
+                category: 'Mutfak',
+                m2: '40 m²',
+                img: 'assets/images/premium-kitchen-2.png',
+                variants: {
+                    'anthracite': 'assets/images/premium-kitchen-2.png',
+                    'white': 'assets/images/kitchen-white-classic.jpg',
+                    'oak': 'assets/images/kitchen-island-luxury.jpg',
+                    'black': 'assets/images/pro-mutfak-11.png'
+                }
+            },
+            'pro-venedik': { title: 'Venedik Gardırop', price: '52.000 TL', category: 'Yatak Odası', m2: 'Glass Edition', img: 'assets/images/premium-bedroom.png' },
+            'pro-mermer': { title: 'Mermer Hilton Banyo', price: '34.000 TL', category: 'Banyo', m2: 'Twin Set', img: 'assets/images/premium-bathroom.png' },
+            'pro-smart': { title: 'Smart Vestiyer', price: '22.000 TL', category: 'Antre & Portmanto', m2: 'Entegre Puf', img: 'assets/images/premium-vestiyer.png' },
+            'pro-nero': {
+                title: 'Nero TV Ünitesi',
+                price: '38.000 TL',
+                category: 'TV Ünitesi',
+                m2: 'Modern Stil',
+                img: 'assets/images/premium-living.png',
+                variants: {
+                    'anthracite': 'assets/images/premium-living.png',
+                    'black': 'assets/images/cabinet-black.jpg'
+                }
+            },
+            'pro-lake': { title: 'Zarif Lake Dresuar', price: '14.500 TL', category: 'Projeler', m2: 'Modern Stil', img: 'assets/images/premium-dresuar.png' },
+
+            // CATALOG ITEMS
+            'pro-a1': { title: 'Pro Model A1', price: '48.000 TL', category: 'Mutfak', m2: 'Standard', img: 'assets/images/pro-mutfak-6.png' },
+            'pro-b2': { title: 'Pro Model B2', price: '52.000 TL', category: 'Mutfak', m2: 'Standard', img: 'assets/images/pro-mutfak-7.png' },
+            'pro-c3': { title: 'Pro Model C3', price: '56.000 TL', category: 'Mutfak', m2: 'Standard', img: 'assets/images/pro-mutfak-11.png' },
+            'pro-d4': { title: 'Pro Model D4', price: '44.000 TL', category: 'Mutfak', m2: 'Standard', img: 'assets/images/pro-mutfak-3.png' },
+            'klasik-beyaz': { title: 'Klasik Beyaz', price: '38.000 TL', category: 'Mutfak', m2: 'Standard', img: 'assets/images/mockups/navy_blue_kitchen.png' },
+            'ahsap-kaplama': { title: 'Ahşap Kaplama', price: '42.000 TL', category: 'Mutfak', m2: 'Standard', img: 'assets/images/mockups/l_shape_kitchen.png' },
+            'gri-soft': { title: 'Gri Soft Mutfak', price: '40.000 TL', category: 'Mutfak', m2: 'Standard', img: 'assets/images/mockups/grey_soft_kitchen.png' },
+            'l-tip': { title: 'L-Tip Tasarım', price: '45.000 TL', category: 'Mutfak', m2: 'Standard', img: 'assets/images/4.jpeg' },
+            'minimal-seri': { title: 'Minimalist Seri', price: '36.000 TL', category: 'Mutfak', m2: 'Standard', img: 'assets/images/mockups/minimalist_kitchen.png' },
+            'elegance-seri': { title: 'ELEGANCE Seri', price: '58.000 TL', category: 'Mutfak', m2: 'Standard', img: 'assets/images/mockups/elegance_kitchen.png' },
+            'vivid-mutfak': { title: 'VIVID Mutfak', price: '43.000 TL', category: 'Mutfak', m2: 'Standard', img: 'assets/images/9.jpeg' },
+
+            // YATAK ODASI
+            'ceviz-gardirop': { title: 'Ceviz Gardırop', price: '28.000 TL', category: 'Yatak Odası', m2: 'Standard', img: 'assets/images/y2.jpeg' },
+            'aynallı-modern': { title: 'Aynalı Modern', price: '32.000 TL', category: 'Yatak Odası', m2: 'Standard', img: 'assets/images/y3.jpeg' },
+            'beyaz-surgulu': { title: 'Beyaz Sürgülü', price: '24.000 TL', category: 'Yatak Odası', m2: 'Standard', img: 'assets/images/y4.jpeg' },
+            '6-kapakli': { title: '6 Kapaklı Klasik', price: '26.500 TL', category: 'Yatak Odası', m2: 'Standard', img: 'assets/images/y5.jpeg' },
+            'naturel-seri': { title: 'Naturel Seri', price: '21.000 TL', category: 'Yatak Odası', m2: 'Standard', img: 'assets/images/y6.jpeg' },
+            'elite-gardirop': { title: 'Elite Gardırop', price: '39.000 TL', category: 'Yatak Odası', m2: 'Standard', img: 'assets/images/y7.jpeg' },
+
+            // ANTRE
+            'antre-moderno': { title: 'Antre Moderno', price: '24.500 TL', category: 'Antre & Portmanto', m2: 'Geniş Hacim', img: 'assets/images/p2.jpeg' },
+            'lake-platinum': { title: 'Lake Platinum Portmanto', price: '28.000 TL', category: 'Antre & Portmanto', m2: 'Özel Lake', img: 'assets/images/p3.jpeg' },
+            'minimal-panel': { title: 'Minimal Panel Plus', price: '18.500 TL', category: 'Antre & Portmanto', m2: 'Antrasit Detay', img: 'assets/images/p4.jpeg' },
+
+            // TV
+            'retro-wall': { title: 'Retro Wall Elite', price: '22.000 TL', category: 'TV Ünitesi', m2: 'Masif Meşe', img: 'assets/images/t1.jpeg' },
+            'modern-infinity': { title: 'Modern Infinity Wall', price: '35.500 TL', category: 'TV Ünitesi', m2: 'LED Aydınlatmalı', img: 'assets/images/t2.jpeg' },
+            'minimalist-zen': { title: 'Minimalist Zen TV', price: '14.900 TL', category: 'TV Ünitesi', m2: 'Soft Touch', img: 'assets/images/t3.jpeg' },
+
+            // PROJELER
+            'comfort-living': { title: 'Comfort Living Concept', price: '115.000 TL', category: 'Projeler', m2: 'Full Set', img: 'assets/images/d1.jpeg' },
+            'elegant-hall': { title: 'Elegant Hall Design', price: '42.000 TL', category: 'Projeler', m2: 'Premium Giriş', img: 'assets/images/d2.jpeg' },
+            'executive-office': { title: 'Executive Home Office', price: '38.000 TL', category: 'Projeler', m2: 'Smart Desk', img: 'assets/images/d3.jpeg' },
+            'luxury-living': { title: 'Luxury Living Suite', price: '145.000 TL', category: 'Projeler', m2: 'Designer Choice', img: 'assets/images/d4.jpeg' },
+            'modern-suite': { title: 'Modern Suite Concept', price: '120.000 TL', category: 'Projeler', m2: 'Luxe Edition', img: 'assets/images/d5.jpeg' },
+            'compact-smart': { title: 'Compact Smart Room', price: '45.000 TL', category: 'Projeler', m2: 'Space Saver', img: 'assets/images/d6.jpeg' },
+            'studio-unit': { title: 'Studio Unit Premium', price: '38.000 TL', category: 'Projeler', m2: 'Minimalist', img: 'assets/images/d7.jpeg' },
+
+            // OTHERS
+            'grey-royal': { title: 'Grey Elegant Royal', price: '94.000 TL', category: 'Mutfak', m2: '45 m²', img: 'assets/images/kitchen-grey-elegant.jpg' },
+            'white-pearl': { title: 'Pure White Pearl', price: '79.000 TL', category: 'Mutfak', m2: '35 m²', img: 'assets/images/kitchen-white-classic.jpg' },
+            'executive-desk': { title: 'Executive Black Desk', price: '19.400 TL', category: 'Çalışma Masası', m2: 'Premium Wood', img: 'assets/images/desk-black.jpg' }
+        };
+
+        const reviewsByCategory = {
+            'Mutfak': [
+                {
+                    img: 'assets/images/4.jpeg',
+                    name: 'Zeynep Çelik',
+                    date: '18 Ocak 2026',
+                    text: '"Yeni mutfağım tam bir rüya! Her detay düşünülmüş. Estetik ve fonksiyonellik bir arada. Çok mutluyum."'
+                },
+                {
+                    img: 'assets/images/6.jpeg',
+                    name: 'Burak Kozan',
+                    date: '14 Ocak 2026',
+                    text: '"Lake mutfak kapaklarımızın kalitesi mükemmel. Sinop\'ta bu kalitede iş yapan tek firma Özcan Mobilya."'
+                }
+            ],
+            'Yatak Odası': [
+                {
+                    img: 'assets/images/y9.jpeg',
+                    name: 'Ayşe Yılmaz',
+                    date: '22 Ocak 2026',
+                    text: '"Yatak odam için yaptırdığım sürgülü dolap şahane oldu. İşçilik kalitesi tek kelimeyle kusursuz. Çok teşekkürler."'
+                },
+                {
+                    img: 'assets/images/y10.jpeg',
+                    name: 'Mehmet Kaya',
+                    date: '15 Ocak 2026',
+                    text: '"Kaliteli işçilik ve zamanında teslimat. Özcan Mobilya\'ya güvenimiz tam. Her aşamada çok yardımcı oldular."'
+                }
+            ],
+            'Banyo': [
+                {
+                    img: 'assets/images/5.jpeg',
+                    name: 'Hülya Aydın',
+                    date: '12 Ocak 2026',
+                    text: '"Banyomuz artık çok daha ferah ve modern. Hilton lavabo tasarımı tam istediğimiz gibi oldu."'
+                },
+                {
+                    img: 'assets/images/vanity-marble.jpg',
+                    name: 'Ahmet Bey',
+                    date: '5 Ocak 2026',
+                    text: '"Mermer detaylar ve lake uyumu harika. Kesinlikle tavsiye ediyorum."'
+                }
+            ],
+            'Antre & Portmanto': [
+                {
+                    img: 'assets/images/p1.jpeg',
+                    name: 'Fatma Demir',
+                    date: '20 Ocak 2026',
+                    text: '"Antre alanımız artık çok daha düzenli ve şık. Beklentilerimizin çok üzerinde bir iş çıktı."'
+                },
+                {
+                    img: 'assets/images/p4.jpeg',
+                    name: 'Ali Öztürk',
+                    date: '10 Ocak 2026',
+                    text: '"Özel ölçü vestiyer tam istediğimiz gibi oldu. Hem şık hem de pratik çözümleri çok beğendik."'
+                }
+            ],
+            'TV Ünitesi': [
+                {
+                    img: 'assets/images/t1.jpeg',
+                    name: 'Murat Can',
+                    date: '25 Ocak 2026',
+                    text: '"Salonumuzun havası değişti. Masif meşe detaylar eve çok doğal bir sıcaklık kattı."'
+                },
+                {
+                    img: 'assets/images/t2.jpeg',
+                    name: 'Sibel Hanım',
+                    date: '19 Ocak 2026',
+                    text: '"LED aydınlatmalı ünite harika görünüyor. Misafirlerimizden tam not aldık."'
+                }
+            ],
+            'Projeler': [
+                {
+                    img: 'assets/images/d1.jpeg',
+                    name: 'Canan Sert',
+                    date: '21 Ocak 2026',
+                    text: '"Bütün evi Özcan Mobilya\'ya teslim ettik. Sonuçtan son derece memnunuz, profesyonel bir süreçti."'
+                },
+                {
+                    img: 'assets/images/d4.jpeg',
+                    name: 'Kemal Gözcü',
+                    date: '16 Ocak 2026',
+                    text: '"Özel tasarım mobilyalarımız tam istediğimiz gibi, her detay titizlikle işlenmiş."'
+                }
+            ],
+            'default': [
+                {
+                    img: 'assets/images/13.jpeg',
+                    name: 'Müşteri Memnuniyeti',
+                    date: '10 Ocak 2026',
+                    text: '"İstediğimiz ölçülere tam uyum sağladı. İşçilik kalitesi çok yüksek."'
+                },
+                {
+                    img: 'assets/images/15.jpeg',
+                    name: 'Orijinal Tasarım',
+                    date: '18 Ocak 2026',
+                    text: '"Tasarımlar çok şık ve kaliteli. Sinop\'un en iyisi."'
+                }
+            ]
+        };
+
+        // Render Product Info
+        if (productId && products[productId]) {
+            const p = products[productId];
+            document.getElementById('productTitle').innerText = p.title;
+            document.getElementById('productPrice').innerText = p.price + "'den başlayan fiyatlarla";
+            document.getElementById('productCategory').innerText = p.category;
+            document.getElementById('productM2').innerText = p.m2;
+            document.getElementById('mainImage').src = p.img;
+            document.title = p.title + " | Sinop Özcan Mobilya";
+
+            // Dynamic Reviews Logic
+            const category = p.category;
+            const categoryReviews = reviewsByCategory[category] || reviewsByCategory['default'];
+            const reviewsGrid = document.querySelector('.customer-photos-grid');
+
+            if (reviewsGrid) {
+                reviewsGrid.innerHTML = ''; // Clear existing static reviews
+                categoryReviews.forEach(review => {
+                    const card = `
+                        <div class="customer-photo-card">
+                            <div class="customer-photo-wrapper">
+                                <img src="${review.img}" alt="Müşteri Fotoğrafı">
+                                <div class="photo-label">Müşteri Evi</div>
+                            </div>
+                            <div class="customer-review-content">
+                                <div class="review-stars">
+                                    <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                                </div>
+                                <p class="review-text">${review.text}</p>
+                                <div class="customer-info">
+                                    <span class="customer-name">${review.name}</span>
+                                    <span class="review-date">${review.date}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    reviewsGrid.innerHTML += card;
+                });
+            }
+        }
+
+        // Realistic Color Switching Logic
+        const swatches = document.querySelectorAll('.swatch');
+        const overlay = document.getElementById('colorOverlay');
+        const mainImg = document.getElementById('mainImage');
+        const currentP = products[productId] || {};
+
+        swatches.forEach(swatch => {
+            swatch.addEventListener('click', () => {
+                swatches.forEach(s => s.classList.remove('active'));
+                swatch.classList.add('active');
+
+                const colorCode = swatch.getAttribute('data-color');
+
+                if (currentP.variants && currentP.variants[colorCode]) {
+                    const wrapper = document.querySelector('.image-wrapper');
+                    wrapper.classList.add('image-loading');
+
+                    mainImg.style.opacity = '0';
+                    setTimeout(() => {
+                        mainImg.src = currentP.variants[colorCode];
+                        mainImg.onload = () => {
+                            mainImg.style.opacity = '1';
+                            wrapper.classList.remove('image-loading');
+                        };
+                    }, 400);
+
+                    overlay.classList.remove('active');
+                } else {
+                    overlay.classList.add('active');
+                    if (colorCode === 'white') {
+                        overlay.style.backgroundColor = 'rgba(255, 255, 255, 0.45)';
+                        overlay.style.mixBlendMode = 'overlay';
+                    } else if (colorCode === 'oak') {
+                        overlay.style.backgroundColor = 'rgba(181, 139, 76, 0.45)';
+                        overlay.style.mixBlendMode = 'hard-light';
+                    } else if (colorCode === 'black') {
+                        overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.65)';
+                        overlay.style.mixBlendMode = 'multiply';
+                    } else {
+                        overlay.classList.remove('active');
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
